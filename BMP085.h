@@ -6,16 +6,18 @@
 //#include <digitalWriteFast.h>
 
 #define BMP085_ADDRESS 0x77
-#define OSS 0x00
-#define READY_PIN 6
-#define POLL_RATE 1000
+#define OSS 0x03
+#define READY_PIN 10
+#define POLL_RATE 0
 
 class BMP085{
 	public:
 		void PollPressure(void);
+		void PollPressureFast(void);
 		void init(void);
-		long Pressure(unsigned long up);
-		short Temperature(unsigned int ut);
+		void GetAltitude(long*, long*,float*);
+		long Pressure(unsigned long );
+		short Temperature(unsigned int);
 		unsigned long ReadUP(void);
 		unsigned int ReadUT(void);
 		void StartUP(void);
@@ -54,6 +56,7 @@ class BMP085{
 		unsigned int ut;
 		unsigned long up;
 		unsigned long timer;
+		float pressureRatio;
 };
 
 #endif

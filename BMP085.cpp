@@ -1,6 +1,35 @@
 #include <BMP085.h>
 #include <digitalWriteFast.h>
 
+void  BMP085::GetAltitude(long *press,long *pressInit, float *alti){
+	pressureRatio = (float) *press / (float) *pressInit;
+	*alti = (1.0f - pow(pressureRatio, 0.190295f)) * 44330.0f;
+}
+
+void BMP085::PollPressureFast(void){
+	if (millis() - timer > POLL_RATE){
+		switch (pressureState){
+			 case 0:
+				 StartUP();
+				 pressureState = 1;
+			 break;
+			 case 1://wait for ready signal
+			 if (digitalReadFast(READY_PIN) == 1){
+				 pressureState = 2;
+				 up = ReadUP();
+			 }
+			 break;
+			 case 2:
+				vars.pressure = Pressure(up);
+				pressureState = 0;
+				newData = true;
+				timer = millis();
+			 break;
+
+		}
+	}
+}
+
 void BMP085::PollPressure(void){
 	if (millis() - timer > POLL_RATE){
 		switch (pressureState){
@@ -104,7 +133,7 @@ unsigned long BMP085::ReadUP(void){
 }
 
 void BMP085::init(void){
-  pinMode(READY_PIN,INPUT);
+  pinModeFast(READY_PIN,INPUT);
   pressureState = 0;
   timer = millis();
   newData = false;
@@ -152,4 +181,9 @@ void BMP085::init(void){
   msb = I2c.receive();
   lsb = I2c.receive();
   md = (msb << 8) | lsb;
+  while (newData == false){
+	  PollPressure();
+  }
+  newData = false;
+
 }
